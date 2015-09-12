@@ -9,18 +9,28 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using RandomNameGeneratorLibrary;
+using System.Threading;
 
 namespace SoftwareTestingDataGenerator
 {
     public partial class Form1 : Form
     {
 
-        List<string> _names = new List<string>{ "tom", "robert", "albert"};
+        List<string> _names = new List<string>();
 
         public Form1()
         {
             InitializeComponent();
             textBox1.Text = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            initNames();
+        }
+
+        private void initNames()
+        {
+            PersonNameGenerator names = new PersonNameGenerator();
+            _names.AddRange(names.GenerateMultipleFemaleFirstNames(500));
+            _names.AddRange(names.GenerateMultipleMaleFirstNames(500));
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -63,10 +73,11 @@ namespace SoftwareTestingDataGenerator
             numMain.Enabled = false;
 
             BackgroundWorker bw = new BackgroundWorker();
+            
 
             bw.DoWork += (object obj, DoWorkEventArgs ev) =>
             {
-                progressBar1.Maximum = (int)numMain.Value;
+                progressBar1.BeginInvoke(new MethodInvoker(() => progressBar1.Maximum = (int)numMain.Value));
 
                 List<string> toAdd = new List<string>();
                 for (int i = 0; i < numMain.Value; i++)
@@ -79,7 +90,7 @@ namespace SoftwareTestingDataGenerator
                     if (i % 10000 == 0)
                     {
                         File.AppendAllLines(fullFilePath, toAdd.ToArray());
-                        progressBar1.Value = i;
+                        progressBar1.BeginInvoke(new MethodInvoker(() => progressBar1.Value = i));
                         toAdd.Clear();
                     }
                 }
@@ -121,7 +132,7 @@ namespace SoftwareTestingDataGenerator
 
         private List<string> randomScores()
         {
-            return new List<string> { rand.Next(4).ToString(), rand.Next(4).ToString(), rand.Next(4).ToString() };
+            return new List<string> { rand.Next(5).ToString(), rand.Next(5).ToString(), rand.Next(5).ToString() };
         }
     }
 }
